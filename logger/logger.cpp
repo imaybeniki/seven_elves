@@ -10,14 +10,16 @@ Logger::~Logger() {
 
 //open close and clear the log file
 void Logger::clearlogfile() {
+	//think this works, just init the lock and it releases when the method exits (or exception is thrown)
+	std::unique_lock<std::mutex> lock1 (m);
 	myFile.open(filename, std::fstream::trunc);
-
 	//close file
 	if (myFile.is_open())
 		myFile.close();
 }
 
 void Logger::log(std::string data) {
+	std::unique_lock<std::mutex> lock2 (m);
 	myFile.open(filename, std::fstream::app);
 	if (!myFile.is_open())
 		return;
@@ -29,4 +31,5 @@ void Logger::log(std::string data) {
 	//close file
 	if (myFile.is_open())
 		myFile.close();
-}
+	}
+
