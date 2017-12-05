@@ -25,11 +25,8 @@ void Logger::log(std::string data) {
 		return;
 
 	std::string myline;
-
 	myFile << data;
-
 	//close file
 	if (myFile.is_open())
 		myFile.close();
 	}
-
