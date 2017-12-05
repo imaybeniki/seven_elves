@@ -11,10 +11,11 @@ using namespace std;
 //(used with PRINT statements)
 //filename is what waiter reads in orders from
 Waiter::Waiter(int id,std::string filename):id(id),myIO(filename){
+
 }
 
-Waiter::~Waiter()
-{
+Waiter::~Waiter(){
+
 }
 
 //gets next Order from file_IO
@@ -33,16 +34,18 @@ int Waiter::getNext(ORDER &anOrder){
 void Waiter::beWaiter() {
 	ORDER tempOrder;
 	int success = getNext(tempOrder);
-	unique_lock<mutex> lck(mutex_order_inQ);
+	//while FileIO can find another order
 	while(success == SUCCESS){
-		lck.lock();
-		order_in_Q.push(tempOrder); //need a lock around this
-		lck.unlock();
-		cv_order_inQ.notify_all(); //there is no way this is right
-		int success = getNext(tempOrder);
+		//set the unique lock
+		unique_lock<mutex> lck(mutex_order_inQ);
+		//push our temp order onto the order q
+		order_in_Q.push(tempOrder);
+		//notify bakers that the order is ready
+		cv_order_inQ.notify_all(); 
+		//reinitalize tempOrder to the next order
+		success = getNext(tempOrder);
 	}
-	unique_lock<mutex> lck(m);
 	b_WaiterIsFinished = true;
+	cout << "Waiter done!" << endl;
 }
-
 
