@@ -4,6 +4,7 @@
 #include "../includes/waiter.h"
 #include "../includes/file_IO.h"
 #include "../includes/externs.h"
+#include "../includes/PRINT.h"
 #include <queue>
 
 using namespace std;
@@ -39,13 +40,15 @@ void Waiter::beWaiter() {
 		//set the unique lock
 		unique_lock<mutex> lck(mutex_order_inQ);
 		//push our temp order onto the order q
+		PRINT1("This is waiter, I have added an order!")
 		order_in_Q.push(tempOrder);
 		//notify bakers that the order is ready
-		cv_order_inQ.notify_all(); 
+		cv_order_inQ.notify_all(); //there is no way this is right
 		//reinitalize tempOrder to the next order
 		success = getNext(tempOrder);
 	}
+	//give everyone one last notification to free up any threads that are stuck waiting on new orders.
 	b_WaiterIsFinished = true;
 	cout << "Waiter done!" << endl;
+	cv_order_inQ.notify_all();
 }
-
