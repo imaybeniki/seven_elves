@@ -52,39 +52,52 @@ void Baker::beBaker() {
 	while(true)
 	{
 		PRINT4("queue size is ", order_in_Q.size(), " this is thread ", id);
-		//threads getting stuck here. Waiting on a notify_all from waiter AFTER waiter has exited execution. Need to only wait for a
-		//notify all once, to indicate that orders have been placed in the in_order_queue
-		if(b_WaiterIsFinished == false)
-		{
-			unique_lock<mutex> lck(mutex_order_inQ);
-			cv_order_inQ.wait(lck); //working?
-		}
+		//The final break condition, when both of these conditions are true there are no more orders and the waiter is free to break its execution
 		if(order_in_Q.empty() && b_WaiterIsFinished == true)
 		{
 			PRINT2("Thread done ", id);
 			break;
 		}
+		//Threads wait here while the waiter is working. When the waiter finishes a batch of jobs the bakers will break out of the wait and work on them
 		while (order_in_Q.empty() && b_WaiterIsFinished == false)
 		{
 			unique_lock<mutex> lck(mutex_order_inQ);
 			PRINT2("Thread waiting ", id);
 			cv_order_inQ.wait(lck); //working?
 		}
+		//first time we see an outQ lock
 		unique_lock<mutex> lck1(mutex_order_outQ);
 		if(!order_in_Q.empty())
 		{
+			//Grab the first available order from the queue and work on it
 			PRINT3("Thread ", id, " is working.");
 			ORDER tempOrder = order_in_Q.front();
 			order_in_Q.pop();
+			//Bake and box doesn't need to be locked, its not accessing any external datastores. By unlocking our lock before we call bake and box,
+			//we allow multiple threads to bake and box concurrently. B&B is by far the most performance intensive method in this program, so allowing
+			//for thread concurrency gives us a big performance boost.
 			lck1.unlock();
 			bake_and_box(tempOrder);
 			lck1.lock();
+			//order done, push it on the out queue
 			order_out_Vector.push_back(tempOrder);
 			PRINT3("Thread ", id, " finished working");
+			//probably a superfluous unlock because the lock is killed at the end of execution anyway, but I'm not brave enough to take it out
 			lck1.unlock();
 		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
