@@ -61,7 +61,6 @@ void Baker::beBaker() {
 		//Threads wait here while the waiter is working. When the waiter finishes a batch of jobs the bakers will break out of the wait and work on them
 		while (order_in_Q.empty() && b_WaiterIsFinished == false)
 		{
-			unique_lock<mutex> lck(mutex_order_inQ);
 			PRINT2("Thread waiting ", id);
 			cv_order_inQ.wait(lck); //working?
 		}
