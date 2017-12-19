@@ -48,6 +48,7 @@ void Waiter::beWaiter() {
 		success = getNext(tempOrder);
 	}
 	//give everyone one last notification to free up any threads that are stuck waiting on new orders.
+	unique_lock<mutex> lck(mutex_order_inQ);
 	b_WaiterIsFinished = true;
 	cout << "Waiter done!" << endl;
 	cv_order_inQ.notify_all();
